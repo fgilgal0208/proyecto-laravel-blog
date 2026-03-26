@@ -23,7 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 2. Leer un post completo
     Route::get('posts/{post}', function (Post $post) {
         // Cargamos las relaciones para la vista de lectura
-        $post->load(['tags', 'user', 'category']); 
+        $post->load(['tags', 'user']); 
         
         return view('posts.show', compact('post'));
     })->name('posts.show');
