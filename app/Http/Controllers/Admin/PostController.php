@@ -11,9 +11,16 @@ use Illuminate\Support\Facades\Storage; // <-- Importante: El Storage correcto
 
 class PostController extends Controller
 {
-    public function index()
+public function index()
     {
-        $posts = Post::orderBy('id', 'desc')->paginate();
+        $query = Post::orderBy('id', 'desc');
+
+        // Si el rol NO es admin, solo ve los suyos
+        if (auth()->user()->role !== 'admin') {
+            $query->where('user_id', auth()->id());
+        }
+
+        $posts = $query->paginate();
 
         return view('admin.posts.index', compact('posts'));
     }
@@ -25,115 +32,159 @@ public function create()
     return view('admin.posts.create', compact('categories', 'tags'));
 }
 
-    public function store(Request $request)
+    
+public function store(Request $request)
     {
+        // 1. VALIDACIÓN DE DATOS
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:posts',
+            'title'       => 'required|string|max:255',
+            'slug'        => 'required|string|max:255|unique:posts',
             'category_id' => 'required|exists:categories,id',
-            'excerpt' => 'nullable|string',
-            'content' => 'nullable|string',
-            'image_path' => 'nullable|string', // Acepta URLs
-            'image' => 'nullable|image|max:2048', // Acepta archivos físicos
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'excerpt'     => 'nullable|string',
+            'content'     => 'nullable|string',
+            'image_path'  => 'nullable|string',
+            'image'       => 'nullable|image|max:2048',
+            'tags'        => 'nullable|array',
+            'tags.*'      => 'exists:tags,id',
         ]);
 
-        // Si se subió un archivo, lo guardamos y generamos su URL pública
+        // 2. GESTIÓN DE LA IMAGEN
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('posts', 'public');
             $data['image_path'] = Storage::url($path);
         }
 
-        $data['user_id'] = auth()->id();
+        // 3. LÓGICA DE PUBLICACIÓN Y AUTOR
+        $data['user_id'] = auth()->id(); // Asignamos el creador
         $data['is_published'] = $request->has('is_published');
 
         if ($data['is_published']) {
-            $data['published_at'] = now(); // Guarda la fecha y hora actual
+            $data['published_at'] = now(); // Si se publica directo, ponemos fecha de hoy
         }
+
+        // 4. CREAR EL POST
         $post = Post::create($data);
 
+        // 5. VINCULAR ETIQUETAS (Si se seleccionaron)
         if ($request->has('tags')) {
-             $post->tags()->attach($request->tags);
+            $post->tags()->attach($request->tags);
         }
 
+        // 6. MENSAJE Y REDIRECCIÓN
         Session::flash('swal', [
-            'icon' => 'success',
-            'title' => 'Eureka!',
-            'text' => 'Post creado correctamente',
+            'icon'  => 'success',
+            'title' => '¡Eureka!',
+            'text'  => 'Post creado correctamente',
         ]);
 
         return redirect()->route('admin.posts.index');
     }
 
-    public function show(Post $post)
+public function show(Post $post)
+{
+    //
+}
+
+public function edit(Post $post)
     {
-        //
+        if ($post->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+                    abort(403, 'No tienes permiso para editar este post.');
+                }
+
+
+        $categories = Category::all();
+        $tags = \App\Models\Tag::all(); 
+        return view('admin.posts.edit', compact('post', 'categories', 'tags'));
     }
 
-    public function edit(Post $post)
-        {
-            $categories = Category::all();
-            $tags = \App\Models\Tag::all(); 
-            return view('admin.posts.edit', compact('post', 'categories', 'tags'));
+
+
+public function update(Request $request, Post $post)
+    {
+        // 1. SEGURIDAD: Comprobamos si es el dueño o es un administrador
+        if ($post->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para actualizar este post.');
         }
 
-    public function update(Request $request, Post $post)
-    {
+        // 2. VALIDACIÓN DE DATOS
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:posts,slug,'.$post->id,
+            'title'       => 'required|string|max:255',
+            'slug'        => 'required|string|max:255|unique:posts,slug,' . $post->id,
             'category_id' => 'required|exists:categories,id',
-            'excerpt' => 'nullable|string',
-            'content' => 'nullable|string',
-            'image_path' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'excerpt'     => 'nullable|string',
+            'content'     => 'nullable|string',
+            'image_path'  => 'nullable|string',
+            'image'       => 'nullable|image|max:2048',
+            'tags'        => 'nullable|array',
+            'tags.*'      => 'exists:tags,id',
         ]);
 
-        // Si se sube una nueva imagen, reemplazamos la anterior
+        // 3. GESTIÓN DE LA IMAGEN
         if ($request->hasFile('image')) {
-            // Opcional: Eliminar la imagen anterior si era un archivo local
+            // Eliminamos la imagen anterior si era un archivo local
             if ($post->image_path && str_contains($post->image_path, '/storage/')) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $post->image_path));
             }
             
+            // Guardamos la nueva y obtenemos la URL
             $path = $request->file('image')->store('posts', 'public');
             $data['image_path'] = Storage::url($path);
         }
-            $data['is_published'] = $request->has('is_published');
 
-        // Si se marca para publicar y no tenía fecha previa, le ponemos la de hoy
+        // 4. LÓGICA DE PUBLICACIÓN
+        $data['is_published'] = $request->has('is_published');
+
         if ($data['is_published'] && !$post->published_at) {
-            $data['published_at'] = now();
+            $data['published_at'] = now(); // Si se publica ahora, ponemos la fecha actual
         } elseif (!$data['is_published']) {
-            // Si lo desmarcamos, borramos la fecha de publicación
-            $data['published_at'] = null;
+            $data['published_at'] = null;  // Si vuelve a borrador, quitamos la fecha
         }
+
+        // 5. ACTUALIZAR EL POST Y SUS RELACIONES
         $post->update($data);
+
+        // Sincronizar etiquetas (Si no hay tags en el request, se desmarcan todas)
         if ($request->has('tags')) {
             $post->tags()->sync($request->tags);
         } else {
-            $post->tags()->detach(); // Por si el usuario desmarca todas
+            $post->tags()->detach(); 
         }
+
+        // 6. MENSAJE DE ÉXITO Y REDIRECCIÓN
         Session::flash('swal', [
-            'icon' => 'success',
-            'title' => 'Eureka!',
-            'text' => 'Post actualizado correctamente',
+            'icon'  => 'success',
+            'title' => '¡Eureka!',
+            'text'  => 'Post actualizado correctamente',
         ]);
 
         return redirect()->route('admin.posts.index');
     }
 
-    public function destroy(Post $post)
+
+
+
+
+
+public function destroy(Post $post)
     {
+        // 1. SEGURIDAD: Comprobamos si es el dueño o es un administrador
+        if ($post->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para eliminar este post.');
+        }
+
+        // 2. LIMPIEZA: Eliminar la imagen del servidor (si es un archivo local)
+        if ($post->image_path && str_contains($post->image_path, '/storage/')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $post->image_path));
+        }
+
+        // 3. ELIMINAR EL POST DE LA BASE DE DATOS
         $post->delete();
 
+        // 4. MENSAJE DE ÉXITO Y REDIRECCIÓN
         Session::flash('swal', [
-            'icon' => 'success',
+            'icon'  => 'success',
             'title' => 'Eliminado',
-            'text' => 'Post eliminado correctamente',
+            'text'  => 'Post eliminado correctamente',
         ]);
 
         return redirect()->route('admin.posts.index');
