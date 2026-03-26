@@ -51,6 +51,10 @@
 
             </flux:sidebar.nav>
 
+            <flux:navlist.item icon="tag" href="{{ route('admin.tags.index') }}" :current="request()->routeIs('admin.tags.*')">
+                Etiquetas
+            </flux:navlist.item>
+
             <flux:spacer />
 
           

@@ -18,12 +18,12 @@ class PostController extends Controller
         return view('admin.posts.index', compact('posts'));
     }
 
-    public function create()
-    {
-        $categories = Category::all();
-
-        return view('admin.posts.create', compact('categories'));
-    }
+public function create()
+{
+    $categories = Category::all();
+    $tags = \App\Models\Tag::all(); 
+    return view('admin.posts.create', compact('categories', 'tags'));
+}
 
     public function store(Request $request)
     {
@@ -35,6 +35,8 @@ class PostController extends Controller
             'content' => 'nullable|string',
             'image_path' => 'nullable|string', // Acepta URLs
             'image' => 'nullable|image|max:2048', // Acepta archivos físicos
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
         ]);
 
         // Si se subió un archivo, lo guardamos y generamos su URL pública
@@ -44,7 +46,11 @@ class PostController extends Controller
         }
 
         $data['user_id'] = auth()->id();
-        Post::create($data);
+        $post = Post::create($data);
+
+        if ($request->has('tags')) {
+             $post->tags()->attach($request->tags);
+        }
 
         Session::flash('swal', [
             'icon' => 'success',
@@ -61,11 +67,11 @@ class PostController extends Controller
     }
 
     public function edit(Post $post)
-    {
-        $categories = Category::all();
-
-        return view('admin.posts.edit', compact('post', 'categories'));
-    }
+        {
+            $categories = Category::all();
+            $tags = \App\Models\Tag::all(); 
+            return view('admin.posts.edit', compact('post', 'categories', 'tags'));
+        }
 
     public function update(Request $request, Post $post)
     {
@@ -77,6 +83,8 @@ class PostController extends Controller
             'content' => 'nullable|string',
             'image_path' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
         ]);
 
         // Si se sube una nueva imagen, reemplazamos la anterior
@@ -91,7 +99,11 @@ class PostController extends Controller
         }
 
         $post->update($data);
-
+        if ($request->has('tags')) {
+            $post->tags()->sync($request->tags);
+        } else {
+            $post->tags()->detach(); // Por si el usuario desmarca todas
+        }
         Session::flash('swal', [
             'icon' => 'success',
             'title' => 'Eureka!',

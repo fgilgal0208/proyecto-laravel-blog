@@ -32,6 +32,14 @@
                 @endforeach
             </flux:select>              
 
+
+            <flux:select name="tags[]" label="Etiquetas (Opcional)" multiple class="mb-4">
+                @foreach ($tags as $tag)
+                    <flux:select.option value="{{ $tag->id }}">{{ $tag->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+
             <flux:textarea name="excerpt" label="Extracto" class="mb-4">{{ old('excerpt') }}</flux:textarea>
             
             <flux:textarea name="content" label="Contenido" rows="6" class="mb-4">{{ old('content') }}</flux:textarea>
