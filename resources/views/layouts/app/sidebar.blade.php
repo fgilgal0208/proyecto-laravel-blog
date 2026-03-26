@@ -18,7 +18,14 @@
                 'name' => 'Posts',
                 'icon' => 'newspaper',
                 'url' => route('admin.posts.index'),
-                'current' => request()->routeIs('admin.posts.*'),]
+                'current' => request()->routeIs('admin.posts.*'),
+            ],
+            [
+                'name' => 'Tags',
+                'icon' => 'tag',
+                'url' => route('admin.tags.index'),
+                'current' => request()->routeIs('admin.tags.*'),
+                ]
         ]
     ];
 @endphp
@@ -51,9 +58,7 @@
 
             </flux:sidebar.nav>
 
-            <flux:navlist.item icon="tag" href="{{ route('admin.tags.index') }}" :current="request()->routeIs('admin.tags.*')">
-                Etiquetas
-            </flux:navlist.item>
+
 
             <flux:spacer />
 
