@@ -46,6 +46,11 @@ public function create()
         }
 
         $data['user_id'] = auth()->id();
+        $data['is_published'] = $request->has('is_published');
+
+        if ($data['is_published']) {
+            $data['published_at'] = now(); // Guarda la fecha y hora actual
+        }
         $post = Post::create($data);
 
         if ($request->has('tags')) {
@@ -97,7 +102,15 @@ public function create()
             $path = $request->file('image')->store('posts', 'public');
             $data['image_path'] = Storage::url($path);
         }
+            $data['is_published'] = $request->has('is_published');
 
+        // Si se marca para publicar y no tenía fecha previa, le ponemos la de hoy
+        if ($data['is_published'] && !$post->published_at) {
+            $data['published_at'] = now();
+        } elseif (!$data['is_published']) {
+            // Si lo desmarcamos, borramos la fecha de publicación
+            $data['published_at'] = null;
+        }
         $post->update($data);
         if ($request->has('tags')) {
             $post->tags()->sync($request->tags);

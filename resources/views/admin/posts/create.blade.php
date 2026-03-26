@@ -44,6 +44,12 @@
             
             <flux:textarea name="content" label="Contenido" rows="6" class="mb-4">{{ old('content') }}</flux:textarea>
             
+
+            <div class="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <flux:checkbox name="is_published" label="Publicar este post inmediatamente" />
+            </div>
+
+
             <div class="flex justify-end mt-6">
                 <flux:button variant="primary" type="submit">Enviar</flux:button>
             </div>
