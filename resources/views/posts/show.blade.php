@@ -13,19 +13,23 @@
             <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
                 <h1 class="text-3xl font-bold text-zinc-900 dark:text-white">{{ $post->title }}</h1>
                 
-                <div class="flex space-x-2 shrink-0">
-                    <form action="{{ route('posts.unpublish', $post) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <flux:button type="submit" variant="subtle">A Borrador</flux:button>
-                    </form>
+                {{-- Comprobamos si el usuario actual es el admin o el autor --}}
+                @if(auth()->user()->role === 'admin' || auth()->id() === $post->user_id)
+                    <div class="flex space-x-2 shrink-0">
+                        <form action="{{ route('posts.unpublish', $post) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <flux:button type="submit" variant="subtle">A Borrador</flux:button>
+                        </form>
 
-                    <form class="delete-form" action="{{ route('admin.posts.destroy', $post) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <flux:button type="submit" variant="danger">Eliminar</flux:button>
-                    </form>
-                </div>
+                        <form class="delete-form" action="{{ route('admin.posts.destroy', $post) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <flux:button type="submit" variant="danger">Eliminar</flux:button>
+                        </form>
+                    </div>
+                @endif
+            </div>
             </div>
 
             <div class="flex flex-wrap items-center text-sm text-zinc-500 dark:text-zinc-400 mb-8 gap-4">

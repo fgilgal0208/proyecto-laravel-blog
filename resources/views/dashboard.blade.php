@@ -22,9 +22,8 @@
                         
                         <div class="mt-auto flex items-center text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                             <flux:icon name="clock" class="size-4 mr-1.5" />
-                            Publicado el {{ $post->published_at->format('d/m/Y \a \l\a\s H:i') }}
+                            Publicado el {{ $post->published_at ? $post->published_at->format('d/m/Y \a \l\a\s H:i') : 'Fecha desconocida' }}                        </div>
                         </div>
-                    </div>
                 </a>
             @empty
                 <div class="col-span-full rounded-xl border border-dashed border-zinc-300 p-12 text-center text-zinc-500 dark:border-zinc-700">
