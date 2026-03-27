@@ -13,12 +13,11 @@ class CategoryController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        $categories = Category::all();
+{
+    $categories = Category::orderBy('id', 'desc')->paginate();
 
-        return view('admin.categories.index', compact('categories'));
-    }
-
+    return view('admin.categories.index', compact('categories'));
+}
     /**
      * Show the form for creating a new resource.
      */
@@ -31,27 +30,22 @@ class CategoryController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+{
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'slug' => 'required|string|max:255|unique:categories', // Asumiendo que requieres un slug
+    ]);
 
-        Category::create($data);
+    Category::create($data);
 
-        Session::flash('swal', [
-            'icon' => 'success',
-            'title' => 'Eureka!',
-            'text' => 'Categoria creada correctamente',
+    Session::flash('swal', [
+        'icon' => 'success',
+        'title' => 'Eureka!',
+        'text' => 'Categoría creada correctamente',
+    ]);
 
-        ]);
-
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
-
-        Category::create($request->only('name', 'slug'));
-
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
-    }
-
+    return redirect()->route('admin.categories.index');
+}
     /**
      * Display the specified resource.
      */
