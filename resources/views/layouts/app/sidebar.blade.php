@@ -1,4 +1,7 @@
 @php
+    // Generamos el prefijo del usuario logeado igual que en el middleware
+    $userPrefix = auth()->user()->role === 'admin' ? 'admin' : \Illuminate\Support\Str::slug(auth()->user()->name);
+
     $groups = [
         'Platform' => [
             [
@@ -7,25 +10,27 @@
                 'url' => route('dashboard'),
                 'current' => request()->routeIs('dashboard'),
             ],
-
             [
                 'name' => 'Categorias',
                 'icon' => 'funnel',
-                'url' => route('admin.categories.index'),
+                // Añadimos el parámetro dinámicamente aquí
+                'url' => route('admin.categories.index', ['user_prefix' => $userPrefix]), 
                 'current' => request()->routeIs('admin.categories.*'),
             ],
             [
                 'name' => 'Posts',
                 'icon' => 'newspaper',
-                'url' => route('admin.posts.index'),
+                // Y aquí
+                'url' => route('admin.posts.index', ['user_prefix' => $userPrefix]),
                 'current' => request()->routeIs('admin.posts.*'),
             ],
             [
                 'name' => 'Tags',
                 'icon' => 'tag',
-                'url' => route('admin.tags.index'),
+                // Y aquí
+                'url' => route('admin.tags.index', ['user_prefix' => $userPrefix]),
                 'current' => request()->routeIs('admin.tags.*'),
-                ]
+            ]
         ]
     ];
 @endphp
@@ -124,7 +129,7 @@
         {{ $slot }}
 
         @fluxScripts
-        @if (@session('swal'))
+        @if (session('swal'))
             
             <script>
                 Swal.fire(@json(session('swal')));
