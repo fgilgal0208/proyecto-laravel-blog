@@ -1,3 +1,7 @@
+@php
+    $userPrefix = auth()->check() ? (auth()->user()->role === 'admin' ? 'admin' : \Illuminate\Support\Str::slug(auth()->user()->name)) : 'admin';
+@endphp
+
 <x-layouts::app :title="$post->title">
     <flux:breadcrumbs class="mb-6">
         <flux:breadcrumbs.item href="{{ route('dashboard') }}">Dashboard</flux:breadcrumbs.item>
@@ -20,7 +24,7 @@
                         <flux:button type="submit" variant="subtle">A Borrador</flux:button>
                     </form>
 
-                    <form class="delete-form" action="{{ route('admin.posts.destroy', $post) }}" method="POST">
+                    <form class="delete-form" action="{{ route('admin.posts.destroy', ['post' => $post, 'user_prefix' => $userPrefix]) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <flux:button type="submit" variant="danger">Eliminar</flux:button>
@@ -31,7 +35,7 @@
             <div class="flex flex-wrap items-center text-sm text-zinc-500 dark:text-zinc-400 mb-8 gap-4">
                 <span class="flex items-center">
                     <flux:icon name="clock" class="size-4 mr-1.5" />
-                    {{ $post->published_at->format('d/m/Y H:i') }}
+                    {{ $post->published_at ? $post->published_at->format('d/m/Y H:i') : 'Sin fecha' }}
                 </span>
                 
                 @if($post->category)
