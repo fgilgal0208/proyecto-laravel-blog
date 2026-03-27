@@ -24,7 +24,7 @@
                         <flux:button type="submit" variant="subtle">A Borrador</flux:button>
                     </form>
 
-                    <form class="delete-form" action="{{ route('admin.posts.destroy', ['post' => $post, 'user_prefix' => $userPrefix]) }}" method="POST">
+                    <form class="delete-form" action="{{ route('admin.posts.destroy', $post) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <flux:button type="submit" variant="danger">Eliminar</flux:button>

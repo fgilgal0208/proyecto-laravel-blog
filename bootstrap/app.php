@@ -11,10 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-
-            Route::middleware(['web', 'auth', \App\Http\Middleware\DynamicUserPrefix::class])
-                ->prefix('{user_prefix}') // <-- Cambiado de 'admin' a '{user_prefix}'
-                ->name('admin.') // <-- Mantenemos 'admin.' para no romper los route() de tus vistas
+          
+            Route::middleware(['web', 'auth'])
+                ->prefix('PracticaBlog') 
+                ->name('admin.') 
                 ->group(base_path('routes/admin.php'));
         }
     )

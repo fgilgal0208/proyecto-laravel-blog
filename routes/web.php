@@ -3,15 +3,15 @@
 use App\Models\Post;
 use Illuminate\Support\Facades\Route;
 
-// Ruta principal (Landing page)
+// Ruta principal (Landing page) se queda en la raíz ( / )
 Route::view('/', 'welcome')->name('home');
 
-// Rutas protegidas (Solo usuarios autenticados y verificados)
-Route::middleware(['auth', 'verified'])->group(function () {
+// Rutas protegidas con el prefijo 'practicablog'
+Route::middleware(['auth', 'verified'])->prefix('PracticaBlog')->group(function () {
     
     // 1. Dashboard (Lista de posts publicados)
     Route::get('dashboard', function () {
-        // LO NUEVO: Cargamos 'tags' y 'user' de golpe para optimizar la base de datos
+        // Cargamos 'tags' y 'user' de golpe para optimizar la base de datos
         $posts = Post::with(['tags', 'user'])
             ->where('is_published', true)
             ->orderBy('published_at', 'desc')

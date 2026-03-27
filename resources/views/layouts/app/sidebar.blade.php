@@ -1,7 +1,4 @@
 @php
-    // Generamos el prefijo del usuario logeado igual que en el middleware
-    $userPrefix = auth()->user()->role === 'admin' ? 'admin' : \Illuminate\Support\Str::slug(auth()->user()->name);
-
     $groups = [
         'Platform' => [
             [
@@ -13,22 +10,19 @@
             [
                 'name' => 'Categorias',
                 'icon' => 'funnel',
-                // Añadimos el parámetro dinámicamente aquí
-                'url' => route('admin.categories.index', ['user_prefix' => $userPrefix]), 
+                'url' => route('admin.categories.index'), 
                 'current' => request()->routeIs('admin.categories.*'),
             ],
             [
                 'name' => 'Posts',
                 'icon' => 'newspaper',
-                // Y aquí
-                'url' => route('admin.posts.index', ['user_prefix' => $userPrefix]),
+                'url' => route('admin.posts.index'), 
                 'current' => request()->routeIs('admin.posts.*'),
             ],
             [
                 'name' => 'Tags',
                 'icon' => 'tag',
-                // Y aquí
-                'url' => route('admin.tags.index', ['user_prefix' => $userPrefix]),
+                'url' => route('admin.tags.index'), 
                 'current' => request()->routeIs('admin.tags.*'),
             ]
         ]
