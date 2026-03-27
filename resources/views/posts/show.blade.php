@@ -1,7 +1,3 @@
-@php
-    $userPrefix = auth()->check() ? (auth()->user()->role === 'admin' ? 'admin' : \Illuminate\Support\Str::slug(auth()->user()->name)) : 'admin';
-@endphp
-
 <x-layouts::app :title="$post->title">
     <flux:breadcrumbs class="mb-6">
         <flux:breadcrumbs.item href="{{ route('dashboard') }}">Dashboard</flux:breadcrumbs.item>

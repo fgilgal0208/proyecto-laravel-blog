@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 // Rutas protegidas con el prefijo 'practicablog'
-Route::middleware(['auth', 'verified'])->prefix('PracticaBlog')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('practicablog')->group(function () {
     
     // 1. Dashboard (Lista de posts publicados)
     Route::get('dashboard', function () {
